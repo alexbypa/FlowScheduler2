@@ -1,0 +1,139 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: flow-scheduler-ollama
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_NUM_PARALLEL=2
+      - OLLAMA_MAX_LOADED_MODELS=1
+      - OLLAMA_KEEP_ALIVE=1m
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  redis-cache:
+    image: redis/redis-stack:latest
+    container_name: flow-scheduler-redis
+    ports:
+      - "6380:6379"
+      - "8001:8001"
+    environment:
+      - REDIS_ARGS=--appendonly yes
+      - ConnectionStrings__Redis=flow-scheduler-redis:6379
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+  # --- ProjectPulse MCP Server (Node.js) ---
+  # MCP server esterno che analizza salute repo GitHub.
+  # FlowScheduler lo consuma via HTTP transport su porta 3000.
+  # Non espone porte all'host — comunicazione solo via rete Docker interna.
+  projectpulse:
+    image: node:22-slim
+    container_name: flow-projectpulse
+    working_dir: /app
+    ports: 
+      - "3000:3000"
+    command: >-
+      sh -c "npm install -g projectpulse-mcp &&
+             node /usr/local/lib/node_modules/projectpulse-mcp/dist/index.js"
+    environment:
+      - MCP_TRANSPORT=http
+      - MCP_PORT=3000
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000/').then(r => {if(!r.ok) process.exit(1)}).catch(() => process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+  # --- Grafana Dashboard (S3 SHIP) ---
+  # Visualizes health score + DORA metrics from HealthMonitorJob.
+  # Queries FlowScheduler WebApi /metrics/query endpoint via Infinity datasource.
+  # Dashboard provisioned automatically from grafana/ folder — zero manual setup.
+  grafana:
+    image: grafana/grafana:latest
+    container_name: flow-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_PLUGINS_PREINSTALL=redis-datasource,yesoreyeram-infinity-datasource
+    volumes:
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      redis-cache:
+        condition: service_healthy
+      # flow-webapi: optional — Grafana works without it (dashboard shows no data until WebApi is up)
+  flow-webapi:
+    build:
+      context: .
+      dockerfile: FlowScheduler.WebApi/Dockerfile
+      network: host    # ← aggiungere
+    container_name: flow-webapi
+    ports:
+      - "5000:8080"
+    environment:
+      - ConnectionStrings__Redis=flow-scheduler-redis:6379
+      # Override MCP config per Docker: HTTP transport verso container projectpulse
+      # ASP.NET Core usa __ (doppio underscore) per navigare JSON annidato
+      # Questo sovrascrive appsettings.json McpServers.projectpulse senza modificare il file
+      - McpServerOptions__McpServers__projectpulse__Transport=http
+      - McpServerOptions__McpServers__projectpulse__BaseUrl=http://localhost:3000/mcp
+    depends_on:
+      redis-cache:
+         condition: service_healthy
+      ollama:
+         condition: service_healthy
+      projectpulse:
+         condition: service_healthy
+    env_file:
+      .env
+    volumes:
+      - ./FlowScheduler.WebApi/appsettings.json:/app/appsettings.json
+      - ./FlowScheduler.WebApi/appsettings.LoggerHelper.json:/app/appsettings.LoggerHelper.json
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  flow-worker:
+    build:
+      context: .
+      dockerfile: FlowScheduler.BackgroundJobs/Dockerfile
+      network: host    # ← aggiungere
+    container_name: flow-worker
+    network_mode: host
+    environment:
+      - ConnectionStrings__Redis=localhost:6380
+      - RedisCacheOptions__Host=localhost
+      - RedisCacheOptions__Port=6380
+      - HangFireOptions__Ollama__Host=localhost
+      - HangFireOptions__Ollama__Port=11434
+      - McpServerOptions__McpServers__projectpulse__Transport=http
+      - McpServerOptions__McpServers__projectpulse__BaseUrl=http://localhost:3000/mcp
+    depends_on:
+      redis-cache:
+         condition: service_healthy
+      ollama:
+         condition: service_healthy
+    env_file:
+      .env
+    volumes:
+      - ./FlowScheduler.BackgroundJobs/appsettings.json:/app/appsettings.json
+      - ./FlowScheduler.BackgroundJobs/appsettings.LoggerHelper.json:/app/appsettings.LoggerHelper.json
+      - worker_logs:/app/logs
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+volumes:
+  redis_data:
+  ollama_data:
+  worker_logs:
+  grafana_data:

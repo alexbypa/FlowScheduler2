@@ -1,0 +1,21 @@
+apiVersion: 1
+
+datasources:
+  # Infinity — queries FlowScheduler WebApi REST endpoint
+  # Used by dashboard panels for clean time-series data
+  - name: FlowScheduler API
+    type: yesoreyeram-infinity-datasource
+    uid: infinity
+    access: proxy
+    isDefault: true
+    jsonData:
+      auth_method: ""
+    editable: true
+
+  # Redis — direct access for exploration and debugging
+  - name: Redis
+    type: redis-datasource
+    uid: redis
+    access: proxy
+    url: flow-scheduler-redis:6379
+    editable: true

@@ -1,0 +1,442 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "title": "Health Score Trend",
+      "description": "Repository health score over time (0-100). Data from ProjectPulse MCP via HealthMonitorJob.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 16, "x": 0, "y": 0 },
+      "id": 1,
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "infinity"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "pointSize": 5,
+            "showPoints": "always"
+          },
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "red", "value": 0 },
+              { "color": "orange", "value": 50 },
+              { "color": "green", "value": 75 }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "single" },
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "infinity" },
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "format": "timeseries",
+          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=health_FlowScheduler&from=${__from:date:iso}&to=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "columns": [
+            { "selector": "timestamp", "text": "Time", "type": "timestamp" },
+            { "selector": "value", "text": "Health Score", "type": "number" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Current Health Score",
+      "description": "Latest health score value. Green >= 75, Orange >= 50, Red < 50.",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 0 },
+      "id": 2,
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "infinity"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "red", "value": 0 },
+              { "color": "orange", "value": 50 },
+              { "color": "green", "value": 75 }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "targets": [
+        {
+          "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "infinity" },
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "format": "timeseries",
+          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=health_FlowScheduler&from=${__from:date:iso}&to=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "columns": [
+            { "selector": "timestamp", "text": "Time", "type": "timestamp" },
+            { "selector": "value", "text": "Health Score", "type": "number" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Deploy Frequency",
+      "description": "Deployments per week (DORA metric).",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "id": 3,
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "infinity"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "blue" },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "pointSize": 5,
+            "showPoints": "always",
+            "drawStyle": "bars",
+            "barAlignment": 0
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "single" },
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "infinity" },
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "format": "timeseries",
+          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=dora_deployment_frequency_FlowScheduler&from=${__from:date:iso}&to=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "columns": [
+            { "selector": "timestamp", "text": "Time", "type": "timestamp" },
+            { "selector": "value", "text": "Deploy Frequency", "type": "number" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Lead Time",
+      "description": "Hours from commit to deploy (DORA metric). Lower is better.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "id": 4,
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "infinity"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "purple" },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "pointSize": 5,
+            "showPoints": "always"
+          },
+          "unit": "h"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "single" },
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "infinity" },
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "format": "timeseries",
+          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=dora_lead_time_FlowScheduler&from=${__from:date:iso}&to=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "columns": [
+            { "selector": "timestamp", "text": "Time", "type": "timestamp" },
+            { "selector": "value", "text": "Lead Time", "type": "number" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Change Failure Rate",
+      "description": "Percentage of deployments causing failures (DORA metric). Lower is better.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "id": 5,
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "infinity"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "orange" },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "pointSize": 5,
+            "showPoints": "always"
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "single" },
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "infinity" },
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "format": "timeseries",
+          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=dora_change_failure_rate_FlowScheduler&from=${__from:date:iso}&to=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "columns": [
+            { "selector": "timestamp", "text": "Time", "type": "timestamp" },
+            { "selector": "value", "text": "Change Failure Rate", "type": "number" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "MTTR (Mean Time to Recovery)",
+      "description": "Minutes to recover from failures (DORA metric). Lower is better.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "id": 6,
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "infinity"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "yellow" },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "pointSize": 5,
+            "showPoints": "always"
+          },
+          "unit": "m"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "single" },
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "infinity" },
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "format": "timeseries",
+          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=dora_mttr_FlowScheduler&from=${__from:date:iso}&to=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "columns": [
+            { "selector": "timestamp", "text": "Time", "type": "timestamp" },
+            { "selector": "value", "text": "MTTR", "type": "number" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "CI Runs (7d)",
+      "description": "Numero di run CI trovati dal tool ProjectPulse check_ci_status. Schema reale: { \"runs\": [...] } — nessun campo status, si conta la lunghezza dell'array.",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 24 },
+      "id": 7,
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "infinity"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "orange", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          },
+          "unit": "none",
+          "noValue": "NO DATA"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value_and_name",
+        "colorMode": "background",
+        "graphMode": "area"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "infinity" },
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "format": "timeseries",
+          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=ci_runs_FlowScheduler&from=${__from:date:iso}&to=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "columns": [
+            { "selector": "timestamp", "text": "Time", "type": "timestamp" },
+            { "selector": "value", "text": "CI Runs", "type": "number" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Dependency Alerts (7d)",
+      "description": "Numero di vulnerabilita' nelle dipendenze trovate dal tool ProjectPulse analyze_dependencies. Schema reale: { \"alerts\": [...] } — si conta la lunghezza dell'array.",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 24 },
+      "id": 8,
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "infinity"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          },
+          "unit": "none",
+          "noValue": "NO DATA"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value_and_name",
+        "colorMode": "background",
+        "graphMode": "area"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "infinity" },
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "format": "timeseries",
+          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=deps_alerts_FlowScheduler&from=${__from:date:iso}&to=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "columns": [
+            { "selector": "timestamp", "text": "Time", "type": "timestamp" },
+            { "selector": "value", "text": "Dependency Alerts", "type": "number" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Code Scanning Alerts (7d)",
+      "description": "Numero di alert code scanning dal tool ProjectPulse analyze_code_scanning. Se code scanning non e' abilitato sul repo, il tool ritorna testo semplice (non JSON) e questo pannello resta NO DATA per design.",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 24 },
+      "id": 9,
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "infinity"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          },
+          "unit": "none",
+          "noValue": "NO DATA (scanning disabilitato)"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value_and_name",
+        "colorMode": "background",
+        "graphMode": "area"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "infinity" },
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "format": "timeseries",
+          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=code_scanning_alerts_FlowScheduler&from=${__from:date:iso}&to=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "columns": [
+            { "selector": "timestamp", "text": "Time", "type": "timestamp" },
+            { "selector": "value", "text": "Code Scanning Alerts", "type": "number" }
+          ]
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["flowscheduler", "health-monitoring", "devops", "dora"],
+  "templating": { "list": [] },
+  "time": { "from": "now-7d", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "FlowScheduler Health Monitor",
+  "uid": "flowscheduler-health",
+  "version": 3,
+  "weekStart": ""
+}

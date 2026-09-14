@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+		<PropertyGroup>
+				<TargetFramework>net10.0</TargetFramework>
+				<ImplicitUsings>enable</ImplicitUsings>
+				<Nullable>enable</Nullable>
+		</PropertyGroup>
+
+		<ItemGroup>
+			<InternalsVisibleTo Include="FlowScheduler.WebApi.Tests" />
+		</ItemGroup>
+
+		<ItemGroup>
+				<Compile Remove="AI\Plugins\**" />
+				<EmbeddedResource Remove="AI\Plugins\**" />
+				<None Remove="AI\Plugins\**" />
+		</ItemGroup>
+
+		<ItemGroup>
+				<PackageReference Include="CSharpEssentials.LoggerHelper" Version="5.0.2" />
+				<PackageReference Include="Google.Cloud.VertexAI.Extensions" Version="1.0.0-beta07" />
+				<PackageReference Include="Microsoft.Agents.AI" Version="1.10.0" />
+				<PackageReference Include="Microsoft.Agents.AI.Hosting" Version="1.10.0-preview.260610.1" />
+				<PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.10.0" />
+				<PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.0-preview3.25342.7" />
+				<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.10" />
+				<PackageReference Include="Microsoft.Extensions.AI.Ollama" Version="9.7.0-preview.1.25356.2" />
+				<PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.6.0" />
+				<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+				<PackageReference Include="Npgsql" Version="10.0.3" />
+				<PackageReference Include="NRedisStack" Version="1.5.0" />
+			<PackageReference Include="Hangfire.Core" Version="1.8.23" />
+		</ItemGroup>
+
+		<ItemGroup>
+				<ProjectReference Include="..\FlowScheduler.Core\FlowScheduler.Core.csproj" />
+		</ItemGroup>
+
+</Project>
