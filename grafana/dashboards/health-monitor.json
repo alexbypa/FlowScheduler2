@@ -53,7 +53,7 @@
           "type": "json",
           "source": "url",
           "format": "timeseries",
-          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=health_FlowScheduler&from=${__from:date:iso}&to=${__to:date:iso}",
+          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=health_FlowScheduler2&from=${__from:date:iso}&to=${__to:date:iso}",
           "url_options": { "method": "GET" },
           "columns": [
             { "selector": "timestamp", "text": "Time", "type": "timestamp" },
@@ -105,7 +105,7 @@
           "type": "json",
           "source": "url",
           "format": "timeseries",
-          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=health_FlowScheduler&from=${__from:date:iso}&to=${__to:date:iso}",
+          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=health_FlowScheduler2&from=${__from:date:iso}&to=${__to:date:iso}",
           "url_options": { "method": "GET" },
           "columns": [
             { "selector": "timestamp", "text": "Time", "type": "timestamp" },
@@ -150,7 +150,7 @@
           "type": "json",
           "source": "url",
           "format": "timeseries",
-          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=dora_deployment_frequency_FlowScheduler&from=${__from:date:iso}&to=${__to:date:iso}",
+          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=dora_deployment_frequency_FlowScheduler2&from=${__from:date:iso}&to=${__to:date:iso}",
           "url_options": { "method": "GET" },
           "columns": [
             { "selector": "timestamp", "text": "Time", "type": "timestamp" },
@@ -193,7 +193,7 @@
           "type": "json",
           "source": "url",
           "format": "timeseries",
-          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=dora_lead_time_FlowScheduler&from=${__from:date:iso}&to=${__to:date:iso}",
+          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=dora_lead_time_FlowScheduler2&from=${__from:date:iso}&to=${__to:date:iso}",
           "url_options": { "method": "GET" },
           "columns": [
             { "selector": "timestamp", "text": "Time", "type": "timestamp" },
@@ -236,7 +236,7 @@
           "type": "json",
           "source": "url",
           "format": "timeseries",
-          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=dora_change_failure_rate_FlowScheduler&from=${__from:date:iso}&to=${__to:date:iso}",
+          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=dora_change_failure_rate_FlowScheduler2&from=${__from:date:iso}&to=${__to:date:iso}",
           "url_options": { "method": "GET" },
           "columns": [
             { "selector": "timestamp", "text": "Time", "type": "timestamp" },
@@ -279,7 +279,7 @@
           "type": "json",
           "source": "url",
           "format": "timeseries",
-          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=dora_mttr_FlowScheduler&from=${__from:date:iso}&to=${__to:date:iso}",
+          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=dora_mttr_FlowScheduler2&from=${__from:date:iso}&to=${__to:date:iso}",
           "url_options": { "method": "GET" },
           "columns": [
             { "selector": "timestamp", "text": "Time", "type": "timestamp" },
@@ -325,7 +325,7 @@
           "type": "json",
           "source": "url",
           "format": "timeseries",
-          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=ci_runs_FlowScheduler&from=${__from:date:iso}&to=${__to:date:iso}",
+          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=ci_runs_FlowScheduler2&from=${__from:date:iso}&to=${__to:date:iso}",
           "url_options": { "method": "GET" },
           "columns": [
             { "selector": "timestamp", "text": "Time", "type": "timestamp" },
@@ -372,7 +372,7 @@
           "type": "json",
           "source": "url",
           "format": "timeseries",
-          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=deps_alerts_FlowScheduler&from=${__from:date:iso}&to=${__to:date:iso}",
+          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=deps_alerts_FlowScheduler2&from=${__from:date:iso}&to=${__to:date:iso}",
           "url_options": { "method": "GET" },
           "columns": [
             { "selector": "timestamp", "text": "Time", "type": "timestamp" },
@@ -419,7 +419,7 @@
           "type": "json",
           "source": "url",
           "format": "timeseries",
-          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=code_scanning_alerts_FlowScheduler&from=${__from:date:iso}&to=${__to:date:iso}",
+          "url": "http://flow-webapi:8080/metrics/query?category=devops&name=code_scanning_alerts_FlowScheduler2&from=${__from:date:iso}&to=${__to:date:iso}",
           "url_options": { "method": "GET" },
           "columns": [
             { "selector": "timestamp", "text": "Time", "type": "timestamp" },

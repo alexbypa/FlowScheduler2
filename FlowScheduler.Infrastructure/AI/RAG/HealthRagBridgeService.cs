@@ -17,7 +17,7 @@ public class HealthRagBridgeService : IRagBridgeService {
             new(ChatRole.System, "Sei un assistente DevOps senior. Produci report Telegram max 15 righe con emoji e ben formattato interpretando i dati JSON forniti di seguito"),
             new(ChatRole.User, $"Repo: {owner}/{repo}\nHealth: {data.HealthJson}\nDORA: {data.DoraJson}\nCI: {data.CiJson}\nDeps: {data.DependenciesJson}\nScanning: {data.CodeScanningJson}")
         };
-        var client = _chatClientFactory.GetClient(ModelTier.Local);
+        var client = _chatClientFactory.GetClient(ModelTier.Primary);
         var response = await client.GetResponseAsync(messages, cancellationToken: ct);
         return response.Text ?? "";
     }
