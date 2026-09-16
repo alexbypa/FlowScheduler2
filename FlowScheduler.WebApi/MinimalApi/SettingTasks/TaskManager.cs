@@ -7,13 +7,6 @@ public class TaskManager : IEndpointDefinition {
 
     public void DefineEndpoints(WebApplication app) {
 
-        app.MapGet("/tasks", async (ITaskSchedulerService monitorService) => {
-            var tasks = await monitorService.GetAllTasksAsync();
-            return Results.Ok(tasks);
-        })
-        .WithName("GetAllTasks")
-        .Produces<IEnumerable<MonitorTask>>(StatusCodes.Status200OK);
-
         app.MapPost("/task", async (CreateTaskRequest task, ITaskSchedulerService monitorService) => {
             var retryIntervals = new TimeSpan[] {
                 TimeSpan.FromSeconds(10),

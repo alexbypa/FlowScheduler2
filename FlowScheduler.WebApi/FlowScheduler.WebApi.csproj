@@ -28,10 +28,6 @@
 		</ItemGroup>
 
 		<ItemGroup>
-				<Content Update="appsettings.httphelper.json">
-						<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-						<CopyToPublishDirectory>Always</CopyToPublishDirectory>
-				</Content>
 				<Content Update="appsettings.LoggerHelper.json">
 						<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 						<CopyToPublishDirectory>Always</CopyToPublishDirectory>

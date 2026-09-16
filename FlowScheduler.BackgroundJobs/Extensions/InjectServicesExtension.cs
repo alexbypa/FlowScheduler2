@@ -23,7 +23,6 @@ public static class InjectServicesExtension {
 
         // --- Result Processing ---
         services.AddScoped<IResultProcessor, ResultProcessorFromDatabase>();
-        services.AddScoped<IResultProcessorFactory, ResultProcessorFactory>();
 
         // --- Sottosistemi ---
         services.AddTelegramServices();

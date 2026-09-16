@@ -29,10 +29,10 @@ public class DatabaseExecuteCommand : CommandObservable, IJobCommand {
     private readonly IConnectionMultiplexer _redis;
     private readonly IDbConnectionFactoryResolver _factoryResolver;
     private readonly AIAgent _exceptionAnalyzer;
-    private readonly IResultProcessorFactory _resultProcessorFactory;
     private readonly AIAgent _localSummarizer;
     private readonly ILogger<DatabaseExecuteCommand> _logger;
     private readonly IMetricsStore _metricsStore;
+    private readonly IResultProcessor _resultProcessor;
     public DatabaseExecuteCommand(
         IOptions<HangFireOptions> options,
         IJobDiagnosticAgent agent,
@@ -41,20 +41,20 @@ public class DatabaseExecuteCommand : CommandObservable, IJobCommand {
         IConnectionMultiplexer redis,
         IDbConnectionFactoryResolver factoryResolver,
         [FromKeyedServices("ExceptionAnalyzer")] AIAgent exceptionAnalyzer,
-        IResultProcessorFactory resultProcessorFactory,
         [FromKeyedServices("ErrorSummaryAgent")] AIAgent localSummarizer,
         IMetricsStore metricsStore,
-        ILogger<DatabaseExecuteCommand> logger) {
+        ILogger<DatabaseExecuteCommand> logger,
+        IResultProcessor resultProcessor) {
         _options = options.Value;
         _agent = agent;
         _telegramService = telegramService;
         _redis = redis;
         _factoryResolver = factoryResolver;
         _exceptionAnalyzer = exceptionAnalyzer;
-        _resultProcessorFactory = resultProcessorFactory;
         _localSummarizer = localSummarizer;
         _metricsStore = metricsStore;
         _logger = logger;
+        _resultProcessor = resultProcessor;
     }
     public async Task ExecuteAsync(CreateTaskRequest taskRequest, CancellationToken cancellationToken = default) {
         if (_options == null || string.IsNullOrEmpty(_options.ConnectionString)) {
@@ -80,8 +80,7 @@ public class DatabaseExecuteCommand : CommandObservable, IJobCommand {
                         dbFactory.AddParameter(command, param.Key, param.Value);
                     }
 
-                    var resultProcessor = _resultProcessorFactory.GetProcessor("ResultProcessorFromDatabase");
-                    var errorGroups = await resultProcessor.getErrorsGrouped(taskRequest, command.ExecuteReaderAsync(cancellationToken), cancellationToken);
+                    var errorGroups = await _resultProcessor.getErrorsGrouped(taskRequest, command.ExecuteReaderAsync(cancellationToken), cancellationToken);
                     var errorGroupsList = errorGroups.ToList();
                     var aiEnabledGroups = new List<IGrouping<string, Dictionary<string, object>>>();
                     foreach (var group in errorGroupsList) {

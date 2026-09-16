@@ -36,8 +36,4 @@ public class MonitorHangFireService : ITaskSchedulerService {
 
         return Task.CompletedTask;
     }
-
-    public Task<IEnumerable<CreateTaskRequest>> GetAllTasksAsync(CancellationToken cancellationToken = default) {
-        throw new NotImplementedException();
-    }
 }
