@@ -1,4 +1,4 @@
-﻿using FlowScheduler.Core.Configuration;
+using FlowScheduler.Core.Configuration;
 using FlowScheduler.Core.Interfaces.AI;
 using FlowScheduler.Infrastructure.AI.ChatClient;
 using FlowScheduler.Infrastructure.AI.Middleware;
@@ -35,46 +35,7 @@ namespace FlowScheduler.Infrastructure.AI.Agents;
 /// - I tool vengono risolti dal DI scoped quando l'agente viene effettivamente costruito.
 /// </summary>
 public static class ConfigurableAgentsExtension {
-    /// <summary>
-    /// Registra tutti gli agenti dichiarati nella configurazione AiOrchestrationOptions.
-    /// Chiamare dopo AddAiTools() e AddAiMiddleware() nella pipeline.
-    /// </summary>
-    public static void AddConfigurableAgents(this IServiceCollection services) {
-        services.AddAIAgent("__configurableAgents__", (sp, _) => {
-            // Questo e un dummy — usiamo il pattern sotto per registrare tutti gli agenti.
-            // Il vero lavoro e fatto dal loop sotto.
-            return null!;
-        });
 
-        // Rimuovi il dummy registration
-        var dummyDescriptor = services.FirstOrDefault(d =>
-            d.IsKeyedService && d.ServiceKey is string key && key == "__configurableAgents__");
-        if (dummyDescriptor != null)
-            services.Remove(dummyDescriptor);
-
-        // Registra ogni agente dal config
-        services.AddSingleton(sp => {
-            // Questo singleton forza la registrazione degli agenti al primo resolve.
-            var options = sp.GetRequiredService<AiOrchestrationOptions>();
-            return new AgentRegistrationMarker(options);
-        });
-
-        // Pattern: per ogni agente nella config, registriamo un keyed service
-        RegisterAgentsFromConfig(services);
-    }
-
-    private static void RegisterAgentsFromConfig(IServiceCollection services) {
-        // Al momento della registrazione DI non abbiamo ancora il service provider,
-        // quindi usiamo una post-configuration callback per leggere le opzioni.
-        // L'approccio e: registrare una factory per ogni chiave nota, e la factory
-        // al momento della risoluzione legge il descrittore e costruisce l'agente.
-
-        // Poiche le chiavi sono note a compile-time nel JSON, usiamo un approccio
-        // a due fasi: prima registriamo il binder delle opzioni, poi un metodo
-        // che registra gli agenti basandosi sulle opzioni.
-
-        services.AddSingleton<AgentFactory>();
-    }
 
     /// <summary>
     /// Metodo di estensione da chiamare DOPO che AiOrchestrationOptions e stato registrato.
@@ -171,8 +132,3 @@ public sealed class AgentFactory {
     }
 }
 
-/// <summary>Marker per verificare che la registrazione e avvenuta.</summary>
-internal sealed class AgentRegistrationMarker {
-    public AiOrchestrationOptions Options { get; }
-    public AgentRegistrationMarker(AiOrchestrationOptions options) => Options = options;
-}

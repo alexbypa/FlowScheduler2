@@ -1,4 +1,4 @@
-using FlowScheduler.Core.Interfaces.Data;
+﻿using FlowScheduler.Core.Interfaces.Data;
 using Npgsql;
 using System;
 using System.Collections.Generic;
