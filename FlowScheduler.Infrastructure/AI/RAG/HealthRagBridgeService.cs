@@ -1,4 +1,4 @@
-﻿using FlowScheduler.Core.Dtos;
+using FlowScheduler.Core.Dtos;
 using FlowScheduler.Core.Interfaces.AI;
 using Microsoft.Extensions.AI;
 using System.Text.Json;
@@ -28,14 +28,17 @@ public class HealthRagBridgeService : IRagBridgeService {
         var score = ExtractHealthScore(data);   // sync, no LLM, no await
         var severity = score is null ? "Info" : score < 50 ? "Warning" : "Info";
 
-        await _ragIngestionService.IngestOpsDocumentAsync(
+        // We explicitly use IngestMetricsDocumentAsync here!
+        // This ensures these massive health/security JSON payloads are stored in the "metrics" context 
+        // rather than the standard "ops" context. This separation prevents RAG pollution where the 
+        // JobDiagnosticAgent would otherwise falsely match on generic terms and exhaust API Rate Limits (429).
+        await _ragIngestionService.IngestMetricsDocumentAsync(
               source: $"Health Report for {owner}/{repo}",
               category: "devops",
-              messageTemplate : $"Repo: {owner}/{repo}\nHealth: {data.HealthJson}",
-              resolution: "", //Per Claude : Qui potremmo mettere la risposta AI
               content: $"Repo: {owner}/{repo}\nHealth: {data.HealthJson}\nDORA: {data.DoraJson}\nCI: {data.CiJson}\nDeps: {data.DependenciesJson}\nScanning: {data.CodeScanningJson}",
-              severity: severity
-        , ct);
+              severity: severity,
+              cancellationToken: ct
+        );
     }
 
     private static double? ExtractHealthScore(HealthCheckResult data) {

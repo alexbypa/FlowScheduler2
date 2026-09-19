@@ -18,4 +18,5 @@ public interface IRagIngestionService {
     Task<string> IngestOpsDocumentAsync(string source, string category, string messageTemplate, string resolution, string content, string? severity = null, CancellationToken cancellationToken = default);
 
     Task<bool> UpdateOpsDocumentAsync(string id, string content, string resolution, string source, string category, string? title, string? severity = null, CancellationToken cancellationToken = default);
+    Task<string> IngestMetricsDocumentAsync(string source, string category, string content, string? severity = null, CancellationToken cancellationToken = default);
 }

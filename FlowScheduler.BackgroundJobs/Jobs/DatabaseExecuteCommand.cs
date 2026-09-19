@@ -89,6 +89,7 @@ public class DatabaseExecuteCommand : CommandObservable, IJobCommand {
                         isAiEnabled = groupRows.FirstOrDefault()?.ContainsKey("EnableAiAnalysis") == true
                                            && Convert.ToBoolean(groupRows.First()["EnableAiAnalysis"]);
 
+                        //group.Key = fingerprint : concatenation of source|category from command DB response
                         RaiseMessage(DashLogLevel.Error, $"[ALERT] Gruppo '{group.Key}': {groupRows.Count} errori su {taskRequest.Name} (AI Enabled: {isAiEnabled})");
 
                         if (isAiEnabled) {

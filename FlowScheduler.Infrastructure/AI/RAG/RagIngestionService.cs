@@ -242,4 +242,30 @@ public class RagIngestionService : IRagIngestionService {
 
         return $"{title.Trim()}\n\n{body}";
     }
+    public async Task<string> IngestMetricsDocumentAsync(string source, string category, string content, string? severity = null, CancellationToken cancellationToken = default) {
+        var id = Guid.NewGuid().ToString("N");
+        var embedding = await _embeddingGenerator.GenerateVectorAsync(content);
+
+        var doc = new RagDocument {
+            Id = id,
+            // IMPORTANT: We use ContextMetrics instead of ContextOps to prevent massive ProjectPulse JSONs 
+            // from flooding the vector search results of the JobDiagnosticAgent. 
+            // This ensures ops search stays clean and avoids 429 Rate Limit errors.
+            Context = VectorStoreConstants.ContextMetrics,
+            Content = content,
+            Resolution = "",
+            Source = source,
+            Title = "",
+            Category = VectorStoreConstants.NormalizeTag(category, "general"),
+            SubCategory = VectorStoreConstants.SubCategoryNoneTag,
+            DocumentType = VectorStoreConstants.DocumentTypeDefault,
+            Markdown = "",
+            CreatedAt = DateTime.UtcNow,
+            Embedding = embedding
+        };
+
+        await _vectorStore.StoreDocumentAsync(doc, cancellationToken);
+        _logger.LogInformation("[RAG] Documento metric ingerito: {Id} | Fonte: {Source} | Categoria: {Category}", id, source, category);
+        return id;
+    }
 }

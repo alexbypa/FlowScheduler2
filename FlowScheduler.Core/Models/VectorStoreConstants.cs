@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 
 namespace FlowScheduler.Core.Models;
 
@@ -6,6 +6,12 @@ public static class VectorStoreConstants {
     public const string ContextOps = "ops";
     public const string ContextLibrary = "library";
     public const string SubCategoryNoneTag = "none";
+    
+    // IMPORTANT: ContextMetrics is explicitly separated from ContextOps!
+    // We use this to prevent the giant ProjectPulse MCP JSONs (DORA metrics, vulnerabilities)
+    // from polluting the operational RAG search. The AI Agent must ONLY search in ContextOps
+    // when troubleshooting jobs to avoid massive token consumption (Rate Limit 429) and false positives.
+    public const string ContextMetrics = "metrics";
     public const string DocumentTypeDefault = "document";
 
     public static string NormalizeContextTag(string? value) {
@@ -14,6 +20,8 @@ public static class VectorStoreConstants {
         var v = value.Trim().ToLowerInvariant();
         if (v == ContextLibrary)
             return ContextLibrary;
+        if (v == ContextMetrics)
+            return ContextMetrics;
         if (v == ContextOps)
             return ContextOps;
         return ContextOps;

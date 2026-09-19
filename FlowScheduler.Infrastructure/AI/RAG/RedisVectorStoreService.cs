@@ -25,6 +25,7 @@ public class RedisVectorStoreService : IVectorStoreService {
 
     public const string ContextOps = "ops";
     public const string ContextLibrary = "library";
+    public const string ContextMetrics = "metrics";
 
     public const string SubCategoryNoneTag = "none";
     public const string DocumentTypeDefault = "document";
@@ -277,7 +278,7 @@ public class RedisVectorStoreService : IVectorStoreService {
             if (!string.Equals(doc.Context, NormalizeContextTag(context), StringComparison.Ordinal)) {
                 return false;
             }
-        } else if (doc.Context is not (ContextOps or ContextLibrary)) {
+        } else if (doc.Context is not (ContextOps or ContextLibrary or ContextMetrics)) {
             return false;
         }
 
@@ -440,12 +441,15 @@ public class RedisVectorStoreService : IVectorStoreService {
     }
 
     /// <summary>
-    /// Valori ammessi: <see cref="ContextOps"/>, <see cref="ContextLibrary"/>.
+    /// Valori ammessi: <see cref="ContextOps"/>, <see cref="ContextLibrary"/>, <see cref="ContextMetrics"/>.
+    /// IMPORTANT: ContextMetrics MUST be supported here. Otherwise, Redis will silently
+    /// overwrite "metrics" back to "ops", breaking the RAG isolation and causing Rate Limits.
     /// </summary>
     public static string NormalizeContextTag(string? value) {
         if (string.IsNullOrWhiteSpace(value)) return ContextOps;
         var v = value.Trim().ToLowerInvariant();
         if (v == ContextLibrary) return ContextLibrary;
+        if (v == ContextMetrics) return ContextMetrics;
         if (v == ContextOps) return ContextOps;
         return ContextOps;
     }
