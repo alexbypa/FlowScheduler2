@@ -34,7 +34,7 @@ namespace FlowScheduler.Infrastructure.AI;
 public static class AiPipelineExtension {
     public static void AddAiPipeline(this IServiceCollection services, IConfiguration configuration) {
         var hangFireOptions = configuration.GetSection("HangFireOptions").Get<HangFireOptions>() ?? new HangFireOptions();
-        services.AddSingleton(hangFireOptions);
+        //services.AddSingleton(hangFireOptions);
 
         var orchestrationOptions = configuration
             .GetSection(AiOrchestrationOptions.SectionName)

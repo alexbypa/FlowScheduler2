@@ -147,7 +147,7 @@ public class DatabaseExecuteCommand : CommandObservable, IJobCommand {
             if (isAiEnabled) {
                 RaiseMessage(DashLogLevel.Info, "Invoco l'analisi AI silenziosa via Microsoft.Extensions.AI...");
                 try {
-                    // ANALISI AI SILENZIOSA — Ollama locale (leggero)
+                    // ANALISI AI SILENZIOSA — Il modello se è primary o Local può essere configurato in appsettings.json sul modello ExceptionAnalyzer
                     var stackTrace = ex.StackTrace ?? "N/A";
                     if (stackTrace.Length > 1000)
                         stackTrace = stackTrace[..1000] + "...";
