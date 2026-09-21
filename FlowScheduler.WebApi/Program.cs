@@ -9,80 +9,58 @@ using FlowScheduler.Core.Interfaces.Processing;
 using FlowScheduler.Infrastructure.AI.RAG;
 using FlowScheduler.Infrastructure.AI.Registry;
 using FlowScheduler.Infrastructure.AI.Storage;
-using FlowScheduler.Infrastructure.Configuration;
 using FlowScheduler.Infrastructure.MCP;
 using FlowScheduler.Infrastructure.Metrics;
 using FlowScheduler.Infrastructure.Persistence;
 using FlowScheduler.Infrastructure.Processing;
 using FlowScheduler.WebApi.Configuration;
 using FlowScheduler.WebApi.McpTools;
-using FlowScheduler.WebApi.MinimalApi;
 using FlowScheduler.WebApi.MinimalApi.CustomDashboardPages;
 using FlowScheduler.WebApi.MinimalApi.HttpHelper.mocks;
 using FlowScheduler.WebApi.MinimalApi.Metrics;
 using FlowScheduler.WebApi.MinimalApi.RAG;
 using FlowScheduler.WebApi.MinimalApi.SettingTasks;
-using Google.Api;
 using Hangfire;
 using Hangfire.Console;
 using Hangfire.Dashboard;
 using Hangfire.Redis.StackExchange;
 using Microsoft.Extensions.AI;
-using OpenAI;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using StackExchange.Redis;
-using System.ClientModel;
-using System.ClientModel.Primitives;
 using System.Reflection;
 
-DotEnvLoader.LoadFromRepositoryRoot();
+
 var builder = WebApplication.CreateBuilder(args);
 
-//TODO: includere CsharpEssential.Redis !
 //TODO: Ottimizzare l' iniezione delle dipendenze con scrutor !
-//TODO: Con Task:whenAll aspettiamo la risposta dal DB dei prezzi e aspettiamo la chiamata Web API per confrontare i dati !
 
+// 1. CSharpEssentials.LoggerHelper
 builder.Configuration.AddJsonFile("appsettings.LoggerHelper.json", optional: true, reloadOnChange: true);
-
 builder.Services.AddHangfireConsoleSink(); // registra IPerformContextAccessor come singleton
 builder.Services.AddLoggerHelper(builder.Configuration);
 
-//TODO: da controllare !!!!! DRY !
-builder.Services.AddScoped<IToolRegistry, ToolRegistry>();
-
-
+// 2. Iniezione dei mock per HttpHelper (per testare le chiamate HTTP senza fare richieste reali)
 builder.Services.InjectMocks();
 builder.Services.AddHttpClients(builder.Configuration);
 builder.Services.AddTransient<InspectingHandler>();
 builder.Services.AddHttpClient("AiChatClient").AddHttpMessageHandler<InspectingHandler>();
 
-DashboardRoutes.Routes.MapRazorPage("/rag-library-dash", _ => new RagLibraryDashboardRedirectPage());
-NavigationMenu.Items.Add(page => new MenuItem("Libreria RAG", page.Url.To("/rag-library-dash")) {
-    Active = page.RequestPath.StartsWith("/rag-library-dash")
-});
-
-DashboardRoutes.Routes.MapRazorPage("/mcp-playground-dash", _ => new McpPlaygroundDashboardRedirectPage());
-NavigationMenu.Items.Add(page => new MenuItem("MCP Playground", page.Url.To("/mcp-playground-dash")) {
-    Active = page.RequestPath.StartsWith("/mcp-playground-dash")
-});
-
-builder.Services.AddScoped<IResultProcessor, ResultProcessorFromDatabase>();
-
-// 3. Assicurati che anche Redis sia registrato, altrimenti il Manager fallirà
-var redisOptions = builder.Configuration.GetSection("redisCacheOptions").Get<RedisCacheOptions>();
-builder.Services.AddSingleton<IConnectionMultiplexer>(sp => {
-    var configOptions = new ConfigurationOptions {
-        EndPoints = { $"{redisOptions.Host}:{redisOptions.Port}" },
-        Password = redisOptions.Password,
-        AbortOnConnectFail = false, // Evita crash all'avvio se Redis è giù
-        ConnectTimeout = redisOptions.ConnectTimeout,
-        SyncTimeout = redisOptions.SyncTimeout,
-        ConnectRetry = 5
-    };
-    return ConnectionMultiplexer.Connect(configOptions);
-});
+// 3. Aggiunta Custom Tabs su Dashboard Hangfire (RAG Library e MCP Playground)
+CustomDashboardExtensions.RegisterCustomDashboardPages();
 
 
-builder.Services.AddMCPClient(builder.Configuration);
+// 4. Assicurati che anche Redis sia registrato, altrimenti il Manager fallirà
+builder.Services.AddAppRedis(builder.Configuration);
+
+
+
+
+
+
+
+
+
+//TO CONTINUE
 
 //builder.Services.AddHttpClient(); //TODO: temp da sostituire con CSharpEssentials.HttpHelper !
 
@@ -127,9 +105,6 @@ builder.Services.AddSwaggerGen(options => {
 });
 var app = builder.Build();
 AiSettingsConfiguration.LogResolvedKey(aiSettings, apiKeySource, app.Logger);
-
-// --- 0. MCP CLIENT — Registra tool da server MCP esterni ---
-await app.Services.GetRequiredService<IMcpClientService>().RegisterAllServersAsync();
 
 // --- 1. MIDDLEWARE DI BASE ---
 app.UseRouting();

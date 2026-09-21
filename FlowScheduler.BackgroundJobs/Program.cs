@@ -4,7 +4,6 @@ using FlowScheduler.BackgroundJobs.Extensions;
 using FlowScheduler.BackgroundJobs.Jobs;
 using FlowScheduler.Core.Configuration;
 using FlowScheduler.Core.Interfaces.MCP;
-using FlowScheduler.Infrastructure.Configuration;
 using FlowScheduler.Infrastructure.Jobs;
 using Hangfire;
 using Hangfire.Console;
@@ -23,9 +22,6 @@ public class Program {
         Console.WriteLine(">>> =========================================== <<<");
         Console.WriteLine(">>> FLOW WORKER STARTING - BUILD: 2026-06-11-V4 <<<");
         Console.WriteLine(">>> =========================================== <<<");
-
-        // Carica .env PRIMA del config builder — così AddEnvironmentVariables() vede le variabili
-        DotEnvLoader.LoadFromRepositoryRoot();
 
         var host = Host.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostingContext, config) => {
