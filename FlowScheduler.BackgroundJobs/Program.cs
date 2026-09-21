@@ -5,6 +5,7 @@ using FlowScheduler.BackgroundJobs.Jobs;
 using FlowScheduler.Core.Configuration;
 using FlowScheduler.Core.Interfaces.MCP;
 using FlowScheduler.Infrastructure.Jobs;
+using FlowScheduler.Infrastructure.Persistence;
 using Hangfire;
 using Hangfire.Console;
 using Hangfire.Redis.StackExchange;
@@ -20,6 +21,7 @@ namespace FlowScheduler.BackgroundJobs;
 public class Program {
     public static async Task Main(string[] args) {
         var host = Host.CreateDefaultBuilder(args)
+            //1 -- LoggerHelper
             .ConfigureAppConfiguration((hostingContext, config) => {
                 config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
                 config.AddJsonFile("appsettings.LoggerHelper.json", optional: true, reloadOnChange: true);
@@ -31,44 +33,17 @@ public class Program {
             })
             .ConfigureServices((hostContext, services) => {
 
-                // 1. Lettura delle impostazioni Redis dal file appsettings.json
-                var redisOptions = hostContext.Configuration.GetSection("redisCacheOptions").Get<RedisCacheOptions>();
+                // 2 -- Lettura delle impostazioni Redis dal file appsettings.json
+                services.AddAppRedis(hostContext.Configuration);
 
-
-
-                if (redisOptions != null) {
-                    // 1.  Registrazione Opzioni per l'Iniezione
-                    services.AddSingleton(redisOptions);
-
-                    // 2. Configurazione del Multiplexer Redis
-                    services.AddSingleton<IConnectionMultiplexer>(sp => {
-                        var configOptions = new ConfigurationOptions {
-                            EndPoints = { $"{redisOptions.Host}:{redisOptions.Port}" },
-                            Password = redisOptions.Password,
-                            AbortOnConnectFail = false, // Evita crash all'avvio se Redis è giù
-                            ConnectTimeout = redisOptions.ConnectTimeout,
-                            SyncTimeout = redisOptions.SyncTimeout
-                        };
-                        return ConnectionMultiplexer.Connect(configOptions);
-                    });
-                }
-
-                services.AddHangfire(configuration => {
-                    configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-                    .UseSimpleAssemblyNameTypeSerializer()
-                    .UseRecommendedSerializerSettings()
-                    .UseRedisStorage(hostContext.Configuration.GetConnectionString("Redis"), new RedisStorageOptions {
-                        Db = 0,
-                        Prefix = "hangfire:"
-                    })
-                    .UseConsole();
-                });
+                // 3 -- Configurazione di Hangfire con Redis come storage
+                services.AddAppHangfire();
                 services.AddHangfireServer(options => {
                     options.ServerName = "flow-worker-main";
                 });
 
+                // 4 -- Registrazione del Manager e dei Processori
                 services.AddWorkerServices(hostContext.Configuration);
-                // 3. Registrazione del Manager e dei Processori (SOLID)
             })
             .Build();
 
