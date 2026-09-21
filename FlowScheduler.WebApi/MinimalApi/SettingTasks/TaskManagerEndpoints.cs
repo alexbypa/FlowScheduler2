@@ -1,23 +1,23 @@
 ﻿using FlowScheduler.Core.Dtos;
-using FlowScheduler.Core.Entities;
 using FlowScheduler.Core.Interfaces.Jobs;
+using System.Runtime.CompilerServices;
 
-namespace FlowScheduler.WebApi.MinimalApi.SettingTasks;
-public class TaskManager : IEndpointDefinition {
+namespace FlowScheduler.WebApi.MinimalApi.SettingTasks {
+    public static class TaskManagerEndpoints {
+        public static void MapTaskEndpoints(this IEndpointRouteBuilder app) {
+            var group = app.MapGroup("/Tasks").WithTags("Task Hangfire Library");
 
-    public void DefineEndpoints(WebApplication app) {
-
-        app.MapPost("/task", async (CreateTaskRequest task, ITaskSchedulerService monitorService) => {
-            var retryIntervals = new TimeSpan[] {
+            app.MapPost("/task", async (CreateTaskRequest task, ITaskSchedulerService monitorService) => {
+                var retryIntervals = new TimeSpan[] {
                 TimeSpan.FromSeconds(10),
                 TimeSpan.FromSeconds(20),
                 TimeSpan.FromMinutes(30)
             };
-            await monitorService.CreateTaskAsync(task, retryIntervals);
-            return Results.Created($"/tasks/{task.Name}", task);
-        })
-        .WithName("CreateTask")
-        .WithDescription("""
+                await monitorService.CreateTaskAsync(task, retryIntervals);
+                return Results.Created($"/tasks/{task.Name}", task);
+            })
+            .WithName("CreateTask")
+            .WithDescription("""
             {
             	"HangFireJobName": "Check betfair Prod",
             	"GitHubOptionName": "Betfair",
@@ -32,5 +32,6 @@ public class TaskManager : IEndpointDefinition {
             	"CronExpression": "*/59 * * * *"
             }
             """);
+        }
     }
 }

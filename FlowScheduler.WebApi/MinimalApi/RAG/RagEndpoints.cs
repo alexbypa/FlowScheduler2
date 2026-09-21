@@ -1,12 +1,11 @@
-using FlowScheduler.Core.Interfaces.AI;
+﻿using FlowScheduler.Core.Interfaces.AI;
 using Microsoft.Extensions.AI;
 using FlowScheduler.Core.Models;
+
 namespace FlowScheduler.WebApi.MinimalApi.RAG;
 
-public class RagEndpoints : IEndpointDefinition {
-    public record RagConfirmRequest(string CorrelationId, string TaskName, string ErrorsJson, string AiSolution);
-    public void DefineEndpoints(WebApplication app) {
-
+public static class MapRagEndpoint {
+    public static void MapRagEndpoints(this IEndpointRouteBuilder app) {
         app.MapPost("/rag/ingest", async (RagIngestRequest request, IRagIngestionService ingestionService) => {
             var id = await ingestionService.IngestOpsDocumentAsync(request.Source, request.Category, request.MessageTemplate, request.Resolution, request.Content);
             return Results.Created($"/rag/documents/{id}", new { Id = id });
@@ -67,7 +66,7 @@ public class RagEndpoints : IEndpointDefinition {
         .WithName("RagIngestBatch")
         .WithTags("RAG");
 
-        app.MapPost("/rag/search", async (RagSearchRequest request, IEmbeddingGenerator<string, Embedding<float>> embeddingService, IVectorStoreService vectorStore, ILogger<RagEndpoints> logger) => {
+        app.MapPost("/rag/search", async (RagSearchRequest request, IEmbeddingGenerator<string, Embedding<float>> embeddingService, IVectorStoreService vectorStore, ILogger<RagConfirmRequest> logger) => {
             try {
                 var embedding = await embeddingService.GenerateVectorAsync(request.Query);
                 var contextFilter = string.IsNullOrWhiteSpace(request.Context) ? null : VectorStoreConstants.NormalizeContextTag(request.Context);

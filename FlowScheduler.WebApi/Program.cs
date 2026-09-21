@@ -4,11 +4,12 @@ using CSharpEssentials.LoggerHelper.Sink.HangfireConsole;
 using FlowScheduler.Core.Configuration;
 using FlowScheduler.Core.Interfaces.AI;
 using FlowScheduler.Core.Interfaces.Jobs;
+using FlowScheduler.Core.Interfaces.MCP;
 using FlowScheduler.Core.Interfaces.Processing;
 using FlowScheduler.Infrastructure.AI.RAG;
+using FlowScheduler.Infrastructure.AI.Registry;
 using FlowScheduler.Infrastructure.AI.Storage;
 using FlowScheduler.Infrastructure.Configuration;
-using FlowScheduler.Core.Interfaces.MCP;
 using FlowScheduler.Infrastructure.MCP;
 using FlowScheduler.Infrastructure.Metrics;
 using FlowScheduler.Infrastructure.Persistence;
@@ -18,6 +19,9 @@ using FlowScheduler.WebApi.McpTools;
 using FlowScheduler.WebApi.MinimalApi;
 using FlowScheduler.WebApi.MinimalApi.CustomDashboardPages;
 using FlowScheduler.WebApi.MinimalApi.HttpHelper.mocks;
+using FlowScheduler.WebApi.MinimalApi.Metrics;
+using FlowScheduler.WebApi.MinimalApi.RAG;
+using FlowScheduler.WebApi.MinimalApi.SettingTasks;
 using Google.Api;
 using Hangfire;
 using Hangfire.Console;
@@ -29,7 +33,6 @@ using StackExchange.Redis;
 using System.ClientModel;
 using System.ClientModel.Primitives;
 using System.Reflection;
-using FlowScheduler.Infrastructure.AI.Registry;
 
 DotEnvLoader.LoadFromRepositoryRoot();
 var builder = WebApplication.CreateBuilder(args);
@@ -52,12 +55,12 @@ builder.Services.AddHttpClients(builder.Configuration);
 builder.Services.AddTransient<InspectingHandler>();
 builder.Services.AddHttpClient("AiChatClient").AddHttpMessageHandler<InspectingHandler>();
 
-DashboardRoutes.Routes.Add("/rag-library-dash", new MyPageDispatcher(_ => new RagLibraryDashboardRedirectPage()));
+DashboardRoutes.Routes.MapRazorPage("/rag-library-dash", _ => new RagLibraryDashboardRedirectPage());
 NavigationMenu.Items.Add(page => new MenuItem("Libreria RAG", page.Url.To("/rag-library-dash")) {
     Active = page.RequestPath.StartsWith("/rag-library-dash")
 });
 
-DashboardRoutes.Routes.Add("/mcp-playground-dash", new MyPageDispatcher(_ => new McpPlaygroundDashboardRedirectPage()));
+DashboardRoutes.Routes.MapRazorPage("/mcp-playground-dash", _ => new McpPlaygroundDashboardRedirectPage());
 NavigationMenu.Items.Add(page => new MenuItem("MCP Playground", page.Url.To("/mcp-playground-dash")) {
     Active = page.RequestPath.StartsWith("/mcp-playground-dash")
 });
@@ -113,7 +116,8 @@ builder.Services.AddTransient<IRagIngestionService, RagIngestionService>();
 builder.Services.AddMetricsStore();
 builder.Services.AddMcpServices();
 
-builder.Services.AddEndpointDefinitions(); // registra gli endpoint via IEndpointDefinition
+
+
 builder.Services.AddEndpointsApiExplorer();
 
 
@@ -156,12 +160,21 @@ app.UseSwaggerUI(c => {
 });
 
 // --- 4. ENDPOINT APPLICATIVI (Minimal API) ---
-app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
-app.UseEndpointDefinitions(); // Questo mappa il tuo MapPost("/tasks")
+app.MapGet("/health", () => {
+    var assemblyLocation = System.Reflection.Assembly.GetExecutingAssembly().Location;
+    var buildTime = System.IO.File.GetLastWriteTime(assemblyLocation);
+    
+    return Results.Ok(new { 
+        status = "healthy",
+        buildTime = buildTime.ToString("yyyy-MM-dd HH:mm:ss")
+    });
+});
+app.MapTaskEndpoints();
+app.MapMetricLibraryEndpoints();
 app.MapMcpEndpoints();
+app.MapRagEndpoints();
 
-// --- 5. HANGFIRE DASHBOARD (Mappata come ENDPOINT
-// finale) ---
+// --- 5. HANGFIRE DASHBOARD (Mappata come ENDPOINT) ---
 // RIMUOVI app.UseHangfireDashboard(...) - causa il crash in .NET 9
 app.MapHangfireDashboard("/dashboard", new DashboardOptions {
     Authorization = new[] { new MyDashboardAuthorizationFilter() }
@@ -190,5 +203,23 @@ public class InspectingHandler(ILogger<InspectingHandler> logger) : DelegatingHa
         }
 
         return response;
+    }
+}
+
+public static class HangfireDashboardExtensions {
+    public static void MapRazorPage(this Hangfire.Dashboard.RouteCollection routes, string pathTemplate, Func<DashboardContext, RazorPage> pageFactory) {
+        routes.Add(pathTemplate, new LambdaDispatcher(pageFactory));
+    }
+
+    private class LambdaDispatcher : IDashboardDispatcher {
+        private readonly Func<DashboardContext, RazorPage> _pageFactory;
+        public LambdaDispatcher(Func<DashboardContext, RazorPage> pageFactory) => _pageFactory = pageFactory;
+
+        public async Task Dispatch(DashboardContext context) {
+            var page = _pageFactory(context);
+            var assignMethod = typeof(RazorPage).GetMethod("Assign", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new[] { typeof(DashboardContext) }, null);
+            assignMethod?.Invoke(page, new object[] { context });
+            await context.Response.WriteAsync(page.ToString());
+        }
     }
 }

@@ -1,10 +1,11 @@
 using FlowScheduler.Core.Interfaces.AI;
 using FlowScheduler.Core.Models;
+using System.Runtime.CompilerServices;
 
 namespace FlowScheduler.WebApi.MinimalApi.RAG;
 
-public class RagLibraryEndpoints : IEndpointDefinition {
-    public void DefineEndpoints(WebApplication app) {
+public static class RagLibraryEndpoints  {
+    public static void MapRagLibraryEndpoints(this IEndpointRouteBuilder app) {
         var group = app.MapGroup("/rag/library").WithTags("RAG Library");
 
         group.MapGet("/documents", async Task<IResult> (

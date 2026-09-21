@@ -1,10 +1,12 @@
-using FlowScheduler.Core.Dtos;
+﻿using FlowScheduler.Core.Dtos;
 using FlowScheduler.Core.Interfaces.Metrics;
 
 namespace FlowScheduler.WebApi.MinimalApi.Metrics;
 
-public class MetricsEndpoints {
-    public static void mapMetricsEndpoints(WebApplication app) {
+public static class MetricLibraryEndpoints {
+    public static void MapMetricLibraryEndpoints(this IEndpointRouteBuilder app) {
+        var group = app.MapGroup("/Metrics").WithTags("Metrics Library");
+
         app.MapGet("/metrics/query", async (string category, string name, DateTimeOffset from, DateTimeOffset to, IMetricsStore metricsStore, ILogger<MetricsEndpoints> logger, CancellationToken cancellationToken) => {
             try {
                 var entries = await metricsStore.QueryAsync(category, name, from, to, cancellationToken);
@@ -16,5 +18,6 @@ public class MetricsEndpoints {
         })
         .WithName("MetricsQuery")
         .WithTags("Metrics");
+
     }
 }
