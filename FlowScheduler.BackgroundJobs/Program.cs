@@ -19,10 +19,6 @@ namespace FlowScheduler.BackgroundJobs;
 
 public class Program {
     public static async Task Main(string[] args) {
-        Console.WriteLine(">>> =========================================== <<<");
-        Console.WriteLine(">>> FLOW WORKER STARTING - BUILD: 2026-06-11-V4 <<<");
-        Console.WriteLine(">>> =========================================== <<<");
-
         var host = Host.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostingContext, config) => {
                 config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);

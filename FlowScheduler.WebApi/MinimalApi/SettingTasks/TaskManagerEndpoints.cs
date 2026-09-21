@@ -7,7 +7,7 @@ namespace FlowScheduler.WebApi.MinimalApi.SettingTasks {
         public static void MapTaskEndpoints(this IEndpointRouteBuilder app) {
             var group = app.MapGroup("/Tasks").WithTags("Task Hangfire Library");
 
-            app.MapPost("/task", async (CreateTaskRequest task, ITaskSchedulerService monitorService) => {
+            group.MapPost("/task", async (CreateTaskRequest task, ITaskSchedulerService monitorService) => {
                 var retryIntervals = new TimeSpan[] {
                 TimeSpan.FromSeconds(10),
                 TimeSpan.FromSeconds(20),
