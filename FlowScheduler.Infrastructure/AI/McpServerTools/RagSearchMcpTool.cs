@@ -1,8 +1,8 @@
-﻿using FlowScheduler.Core.Interfaces.AI;
+using FlowScheduler.Core.Interfaces.AI;
 using ModelContextProtocol.Server;
 using System.ComponentModel;
 
-namespace FlowScheduler.WebApi.McpTools;
+namespace FlowScheduler.Infrastructure.AI.McpServerTools;
 
 /// <summary>
 /// This class defines a server tool for performing RAG (Retrieval-Augmented Generation) searches using the IRagSearchService.
@@ -30,4 +30,3 @@ public class RagSearchMcpTool {
         }
     }
 }
-

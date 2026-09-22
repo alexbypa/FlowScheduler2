@@ -1,9 +1,9 @@
-﻿using ModelContextProtocol.Server;
+using ModelContextProtocol.Server;
 using System.ComponentModel;
 using System.Text;
 using FlowScheduler.Core.Interfaces.AI;
 
-namespace FlowScheduler.WebApi.McpTools;
+namespace FlowScheduler.Infrastructure.AI.McpServerTools;
 
 [McpServerToolType]
 public class DiagnosticMcpTool {

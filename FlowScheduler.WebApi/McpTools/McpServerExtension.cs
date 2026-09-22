@@ -1,5 +1,4 @@
-﻿using FlowScheduler.Core.Interfaces.AI;
-using FlowScheduler.Infrastructure.AI.RAG;
+﻿using FlowScheduler.Infrastructure.AI.McpServerTools;
 
 namespace FlowScheduler.WebApi.McpTools;
 
@@ -10,13 +9,13 @@ public static class McpServerExtension {
     /// <param name="services"></param>
     /// <returns></returns>
     public static IServiceCollection AddMcpServices(this IServiceCollection services) {
-        // 1. Registra IRagSearchService (mancante in WebApi, necessario per 2 tool MCP)
-        services.AddTransient<IRagSearchService, RagSearchService>();
+        // 1. Dipendenze dei tool MCP (classi in FlowScheduler.Infrastructure.AI.McpServerTools)
+        services.AddMcpServerTools();
 
-        // 2. Registra MCP Server con auto-discovery dei tool via attributi
+        // 2. Registra MCP Server con auto-discovery dei tool via attributi, nell'assembly Infrastructure
         services.AddMcpServer()
             .WithHttpTransport()
-            .WithToolsFromAssembly();
+            .WithToolsFromAssembly(typeof(McpServerToolsExtension).Assembly);
 
         return services;
     }
@@ -26,7 +25,7 @@ public static class McpServerExtension {
     /// <param name="app"></param>
     /// <returns></returns>
     public static WebApplication MapMcpEndpoints(this WebApplication app) {
-        app.MapMcp();
+        app.MapMcp("/mcp");
         return app;
     }
 }

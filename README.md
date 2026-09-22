@@ -165,6 +165,17 @@ Exposes tools via the MCP protocol for external AI agents:
 | `MetricsQueryMcpTool` | Query performance metrics |
 | `DiagnosticMcpTool` | System diagnostics |
 
+### MCP Playground
+
+The MCP Playground is an internal developer console for testing the
+FlowScheduler MCP server before connecting an external MCP client.
+
+It allows developers to discover registered tools, invoke them with custom
+parameters, inspect the exact JSON-RPC responses returned to an AI agent, and
+troubleshoot MCP transport or RAG-related issues.
+
+- [MCP Playground Guide](guides/mcp-playground.md)
+
 ### MCP Client (Infrastructure)
 
 Connects to external MCP servers (e.g., `ProjectPulse` for GitHub health analysis). Configured in `appsettings.json` under `McpServerOptions.McpServers`.

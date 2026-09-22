@@ -1,8 +1,8 @@
-﻿using FlowScheduler.Core.Interfaces.Metrics;
+using FlowScheduler.Core.Interfaces.Metrics;
 using ModelContextProtocol.Server;
 using System.ComponentModel;
 
-namespace FlowScheduler.WebApi.McpTools;
+namespace FlowScheduler.Infrastructure.AI.McpServerTools;
 
 [McpServerToolType]
 public class MetricsQueryMcpTool {

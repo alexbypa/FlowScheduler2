@@ -1,8 +1,8 @@
-﻿using FlowScheduler.Core.Interfaces.AI;
+using FlowScheduler.Core.Interfaces.AI;
 using ModelContextProtocol.Server;
 using System.ComponentModel;
 
-namespace FlowScheduler.WebApi.McpTools;
+namespace FlowScheduler.Infrastructure.AI.McpServerTools;
 
 [McpServerToolType]
 public class RagDocumentsMcpTool {
@@ -19,8 +19,8 @@ public class RagDocumentsMcpTool {
         // 1. Clamp: page min 1, pageSize clamp 1-50
         page = Math.Clamp(page, 1, int.MaxValue);
         pageSize = Math.Clamp(pageSize, 1, 50);
-        // 2. Chiama vectorStoreService.SearchLibraryAsync(context, category, subCategory, docType, page, pageSize)
-        var result = await vectorStoreService.SearchLibraryAsync(context, category, subCategory, docType, page, pageSize);
+        // 2. SearchLibraryAsync usa page 0-based (Skip(page*pageSize)); qui page e' 1-based
+        var result = await vectorStoreService.SearchLibraryAsync(context, category, subCategory, docType, page - 1, pageSize);
         // 3. Se Items vuoto → return "No documents found"
         if (result.Items.Count == 0) {
             return "No documents found";
@@ -35,7 +35,7 @@ public class RagDocumentsMcpTool {
         }
         // 5. Aggiungi footer: "Page {page} — {totalCount} total documents"
         sb.AppendLine($"Page {page} — {result.TotalCount} total documents");
-    
+
         return sb.ToString();
     }
 }

@@ -1,7 +1,7 @@
 using NSubstitute;
 using FlowScheduler.Core.Interfaces.Metrics;
 using FlowScheduler.Core.Dtos;
-using FlowScheduler.WebApi.McpTools;
+using FlowScheduler.Infrastructure.AI.McpServerTools;
 
 namespace FlowScheduler.WebApi.Tests.McpTools;
 
