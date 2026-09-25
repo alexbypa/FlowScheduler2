@@ -6,6 +6,7 @@ using FlowScheduler.Core.Interfaces.AI;
 using FlowScheduler.Core.Interfaces.Jobs;
 using FlowScheduler.Core.Interfaces.MCP;
 using FlowScheduler.Core.Interfaces.Processing;
+using FlowScheduler.Infrastructure.AI;
 using FlowScheduler.Infrastructure.AI.RAG;
 using FlowScheduler.Infrastructure.AI.Registry;
 using FlowScheduler.Infrastructure.AI.Storage;
@@ -57,22 +58,20 @@ builder.Services.AddAppRedis(builder.Configuration);
 // 5. Configurazione Hangfire con Redis
 builder.Services.AddAppHangfire();
 
-// --- RAG E SERVIZI ESTERNI (Dashboard & MCP) ---
-// Configurazione chiave API (necessaria per interrogare gli embeddings nella libreria RAG)
+// --- AI PIPELINE + RAG + MCP ---
+// Configurazione chiave API (necessaria per LLM e embeddings)
 var (aiSettings, apiKeySource) = AiSettingsConfiguration.Resolve(builder.Configuration);
 AiSettingsConfiguration.EnsureApiKeyOrThrow(aiSettings);
 builder.Services.AddSingleton(aiSettings);
 
-// 1. Storage Vettoriale: Permette alla dashboard di fare ricerche semantiche nei documenti RAG
-builder.Services.AddAiStorage(aiSettings);
+// Full AI Pipeline (7 layer: Transport → ChatClient → Storage → Tools → Middleware → Agents → Consumers)
+// Registra IChatClientFactory, IRagBridgeService, IRagIngestionService, IVectorStoreService, etc.
+builder.Services.AddAiPipeline(builder.Configuration);
 
-// 2. Ingestion Service: Permette alla dashboard di forzare il caricamento manuale di documenti RAG via API HTTP
-builder.Services.AddTransient<IRagIngestionService, RagIngestionService>();
-
-// 3. Metrics Store: Fornisce i dati (lettura da Redis) per popolare i grafici all'endpoint /metrics/query
+// Metrics Store: Fornisce i dati (lettura da Redis) per popolare i grafici all'endpoint /metrics/query
 builder.Services.AddMetricsStore();
 
-// 4. MCP Server: Espone questa WebApi verso l'esterno (es. Claude Desktop) per usare i tool come MetricsQueryMcpTool
+// MCP Server: Espone questa WebApi verso l'esterno (es. Claude Desktop) per usare i tool come MetricsQueryMcpTool
 builder.Services.AddMcpServices();
 
 builder.Services.AddEndpointsApiExplorer();
