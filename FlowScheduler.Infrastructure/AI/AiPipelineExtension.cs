@@ -7,6 +7,7 @@ using FlowScheduler.Infrastructure.AI.Middleware;
 using FlowScheduler.Infrastructure.AI.Registry;
 using FlowScheduler.Infrastructure.AI.Storage;
 using FlowScheduler.Infrastructure.AI.Tools;
+using FlowScheduler.Infrastructure.AI.Evaluation;
 using FlowScheduler.Infrastructure.AI.Transport;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
@@ -70,5 +71,7 @@ public static class AiPipelineExtension {
         services.AddConfigurableAgentsFromOptions(orchestrationOptions);
         // Layer 7: Consumers (registrati direttamente nei job HangFire, per ora)
         services.AddAiConsumers();
+        // Layer 8: Evaluation (RAG quality scoring + interpretation)
+        services.AddAiEvaluation();
     }
 }

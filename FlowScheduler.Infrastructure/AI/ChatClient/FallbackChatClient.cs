@@ -25,7 +25,7 @@ public class FallbackChatClient : DelegatingChatClient {
     public override async Task<ChatResponse> GetResponseAsync(IEnumerable<ChatMessage> chatMessages, ChatOptions? options = null, CancellationToken cancellationToken = default) {
         if (IsInCooldown()) {
             var remaining = GetRemainingCooldown();
-            _logger.LogWarning("[RATE LIMIT] Gemini in cooldown ({RemainingSeconds}s rimanenti). Deviazione diretta su Ollama.", remaining.TotalSeconds);
+            _logger.LogWarning("[RATE LIMIT] PrimaryLLM in cooldown ({RemainingSeconds}s rimanenti). Deviazione diretta su Ollama.", remaining.TotalSeconds);
             return await CallFallbackAsync(chatMessages, options, cancellationToken);
         }
 
@@ -39,11 +39,11 @@ public class FallbackChatClient : DelegatingChatClient {
             _logger.LogInformation("[FALLBACK] Verifica Abilitazione LLM");
             var response = await base.GetResponseAsync(chatMessages, options, cancellationToken);
             response.AdditionalProperties ??= new();
-            response.AdditionalProperties["AiProvider"] = $"Gemini ({response.ModelId ?? "unknown"})";
+            response.AdditionalProperties["AiProvider"] = $"PrimaryLLM ({response.ModelId ?? "unknown"})";
             return response;
         } catch (Exception ex) {
             if (IsRetryableError(ex)) {
-                _logger.LogError(ex, "[FALLBACK RETRYABLE] Chiamata a Gemini fallita (retryable): {Error}", ex.Message);
+                _logger.LogError(ex, "[FALLBACK RETRYABLE] Chiamata a PrimaryLLM fallita (retryable): {Error}", ex.Message);
 
                 if (IsRateLimitError(ex))
                     TriggerCooldown();
@@ -81,7 +81,7 @@ public class FallbackChatClient : DelegatingChatClient {
 
         if (IsInCooldown()) {
             var remaining = GetRemainingCooldown();
-            _logger.LogWarning("[RATE LIMIT STREAMING] Gemini in cooldown ({RemainingSeconds}s rimanenti). Deviazione diretta su Ollama.", remaining.TotalSeconds);
+            _logger.LogWarning("[RATE LIMIT STREAMING] PrimaryLLM in cooldown ({RemainingSeconds}s rimanenti). Deviazione diretta su Ollama.", remaining.TotalSeconds);
             try {
                 var fallbackOptions = BuildFallbackOptions(options);
                 var fallbackMessages = BuildFallbackMessages(chatMessages);
@@ -89,7 +89,7 @@ public class FallbackChatClient : DelegatingChatClient {
                 var text = response.Text ?? "Ollama non ha prodotto una risposta.";
                 results.Add(new ChatResponseUpdate(ChatRole.Assistant, text));
             } catch (Exception fallbackEx) {
-                var errorMsg = $"Errore critico: Sia Gemini (rate limited) che Ollama hanno fallito.\n\nDettaglio Ollama: {fallbackEx.Message}";
+                var errorMsg = $"Errore critico: Sia PrimaryLLM (rate limited) che Ollama hanno fallito.\n\nDettaglio Ollama: {fallbackEx.Message}";
                 results.Add(new ChatResponseUpdate(ChatRole.Assistant, errorMsg));
             }
             return results;
@@ -102,7 +102,7 @@ public class FallbackChatClient : DelegatingChatClient {
             return results;
         } catch (Exception ex) {
             if (IsRetryableError(ex)) {
-                _logger.LogError(ex, "[FALLBACK STREAMING RETRYABLE] Chiamata streaming a Gemini fallita (retryable): {Error}", ex.Message);
+                _logger.LogError(ex, "[FALLBACK STREAMING RETRYABLE] Chiamata streaming a PrimaryLLM fallita (retryable): {Error}", ex.Message);
 
                 if (IsRateLimitError(ex))
                     TriggerCooldown();
@@ -118,7 +118,7 @@ public class FallbackChatClient : DelegatingChatClient {
                     var text = response.Text ?? "Ollama non ha prodotto una risposta.";
                     results.Add(new ChatResponseUpdate(ChatRole.Assistant, text));
                 } catch (Exception fallbackEx) {
-                    var errorMsg = $"Errore critico: Sia Gemini che Ollama hanno fallito.\n\nDettaglio Ollama: {fallbackEx.Message}";
+                    var errorMsg = $"Errore critico: Sia PrimaryLLM che Ollama hanno fallito.\n\nDettaglio Ollama: {fallbackEx.Message}";
                     results.Add(new ChatResponseUpdate(ChatRole.Assistant, errorMsg));
                 }
                 return results;
@@ -139,7 +139,7 @@ public class FallbackChatClient : DelegatingChatClient {
             response.AdditionalProperties["AiProvider"] = "Ollama";
             return response;
         } catch (Exception fallbackEx) {
-            var errorMsg = $"Errore critico: Sia Gemini (rate limited) che Ollama hanno fallito.\n\nDettaglio Ollama: {fallbackEx.Message}";
+            var errorMsg = $"Errore critico: Sia PrimaryLLM (rate limited) che Ollama hanno fallito.\n\nDettaglio Ollama: {fallbackEx.Message}";
             var errorResponse = new ChatResponse(new ChatMessage(ChatRole.Assistant, errorMsg));
             errorResponse.AdditionalProperties ??= new();
             errorResponse.AdditionalProperties["AiProvider"] = "None (Error)";
@@ -202,16 +202,21 @@ public class FallbackChatClient : DelegatingChatClient {
     /// </summary>
     private static bool IsRetryableError(Exception ex) {
         return ex is HttpRequestException
+                 || ex is System.ClientModel.ClientResultException
                  || ex is TaskCanceledException { InnerException: TimeoutException }
                  || ex.Message.Contains("429")
+                 || ex.Message.Contains("413")
                  || ex.Message.Contains("Too Many Requests")
+                 || ex.Message.Contains("rate_limit")
                  || ex.Message.Contains("503")
                  || ex.Message.Contains("502");
     }
 
     private static bool IsRateLimitError(Exception ex) {
         return ex.Message.Contains("429")
+            || ex.Message.Contains("413")
             || ex.Message.Contains("Too Many Requests")
+            || ex.Message.Contains("rate_limit")
             || ex.Message.Contains("503");
     }
 }

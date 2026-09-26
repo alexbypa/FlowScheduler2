@@ -12,16 +12,19 @@ public class JobDiagnosticAgent : IJobDiagnosticAgent {
     private readonly IRagSearchService _ragSearch;
     private readonly IContentStore _contentStore;
     private readonly ILogger<JobDiagnosticAgent> _logger;
+    private readonly IRagEvaluator _evaluator;
 
     public JobDiagnosticAgent(
         [FromKeyedServices("MainAgent")] AIAgent agent,
         IRagSearchService ragSearch,
         IContentStore contentStore,
-        ILogger<JobDiagnosticAgent> logger) {
+        ILogger<JobDiagnosticAgent> logger,
+        IRagEvaluator evaluator) {
         _agent = agent;
         _ragSearch = ragSearch;
         _contentStore = contentStore;
         _logger = logger;
+        _evaluator = evaluator;
     }
 
     public async Task<DiagnosticResult> AnalyzeAsync(
@@ -87,6 +90,19 @@ public class JobDiagnosticAgent : IJobDiagnosticAgent {
             _logger.LogInformation("[AI] [ORCHESTRATOR] Risposta ricevuta da {Provider} : {Response}", provider, rawResponse);
 
             var (severity, message) = ParseSeverity(rawResponse);
+
+            // Fire-and-forget: evaluate RAG quality without blocking diagnostic flow
+            _ = Task.Run(async () => {
+                try {
+                    var evalResult = await _evaluator.EvaluateAsync(prompt, ragResult.FormattedContext ?? "", rawResponse);
+                    if (evalResult.Relevance < 2.0f || evalResult.Truth < 2.0f || evalResult.Completeness < 2.0f)
+                        _logger.LogWarning("[AI] [EVAL] RAG quality below threshold for task {TaskName}: R:{Relevance:F1} T:{Truth:F1} C:{Completeness:F1}",
+                            taskRequest.Name, evalResult.Relevance, evalResult.Truth, evalResult.Completeness);
+                }
+                catch (Exception ex) {
+                    _logger.LogWarning(ex, "[AI] [EVAL] Fire-and-forget evaluation failed");
+                }
+            }, cancellationToken);
 
             return new DiagnosticResult(
                 Message: message,

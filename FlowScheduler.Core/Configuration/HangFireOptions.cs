@@ -16,6 +16,7 @@
         public string EmbeddingEndpoint { get; set; }
         public int EmbeddingDimension { get; set; }
         public TimeSpan RateLimitWindow { get; set; } = TimeSpan.FromSeconds(60);
+        public int EvalMaxParallelism { get; set; } = 1;
     }
     public class Telegram {
         public string BotChatId { get; set; }
