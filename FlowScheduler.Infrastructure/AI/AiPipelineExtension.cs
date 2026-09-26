@@ -1,27 +1,17 @@
 ﻿using FlowScheduler.Core.Configuration;
-using FlowScheduler.Core.Dtos;
 using FlowScheduler.Core.Interfaces.AI;
 using FlowScheduler.Infrastructure.AI.Advisor;
 using FlowScheduler.Infrastructure.AI.Agents;
 using FlowScheduler.Infrastructure.AI.ChatClient;
 using FlowScheduler.Infrastructure.AI.Middleware;
-using FlowScheduler.Infrastructure.AI.RAG;
 using FlowScheduler.Infrastructure.AI.Registry;
 using FlowScheduler.Infrastructure.AI.Storage;
 using FlowScheduler.Infrastructure.AI.Tools;
 using FlowScheduler.Infrastructure.AI.Transport;
-using FlowScheduler.Infrastructure.Database;
-using FlowScheduler.Infrastructure.Http;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using OpenAI;
-using StackExchange.Redis;
-using System.ClientModel;
-using System.ClientModel.Primitives;
-using System.Net.Http.Headers;
 
 namespace FlowScheduler.Infrastructure.AI;
 
@@ -33,9 +23,6 @@ namespace FlowScheduler.Infrastructure.AI;
 /// </summary>
 public static class AiPipelineExtension {
     public static void AddAiPipeline(this IServiceCollection services, IConfiguration configuration) {
-        var hangFireOptions = configuration.GetSection("HangFireOptions").Get<HangFireOptions>() ?? new HangFireOptions();
-        //services.AddSingleton(hangFireOptions);
-
         var orchestrationOptions = configuration
             .GetSection(AiOrchestrationOptions.SectionName)
             .Get<AiOrchestrationOptions>() ?? new AiOrchestrationOptions();
@@ -58,10 +45,11 @@ public static class AiPipelineExtension {
         // Layer 1: Transport HTTP
         services.AddAiTransport();
         // Layer 2: Chat Client Pipeline
-        services.AddAiChatClientPipeline(hangFireOptions);
+        services.AddAiChatClientPipeline();
 
         // AdvisorChatClientFactory — dopo Layer 2 (primary client disponibile)
         services.AddSingleton<AdvisorChatClientFactory>(sp => {
+            var hangFireOptions = sp.GetRequiredService<HangFireOptions>();
             var primaryClient = sp.GetRequiredService<IChatClient>();
             var ollamaEndpoint = AiChatClientExtension.BuildOllamaEndpoint(hangFireOptions.Ollama?.Host);
             var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
@@ -72,9 +60,9 @@ public static class AiPipelineExtension {
         services.AddSingleton<IChatClientFactory>(sp => sp.GetRequiredService<AdvisorChatClientFactory>());
 
         // Layer 3: Storage (ContentStore, VectorStore, ChatHistory, Embedding)
-        services.AddAiStorage(hangFireOptions);
+        services.AddAiStorage();
         // Layer 4: Tools
-        services.AddAiTools(hangFireOptions);
+        services.AddAiTools();
         // Layer 5: Middleware
         services.AddAiMiddleware();
         // Layer 6: Agents (registrati direttamente nei consumer, per ora)

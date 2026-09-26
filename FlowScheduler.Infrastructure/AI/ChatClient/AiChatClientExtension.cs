@@ -13,8 +13,9 @@ namespace FlowScheduler.Infrastructure.AI.ChatClient;
 /// Catena: OpenAI -> Logging -> ContextLimitFilter -> FunctionInvocation -> ConnectionTracingFilter -> FallbackChatClient
 /// </summary>
 public static class AiChatClientExtension {
-    public static IServiceCollection AddAiChatClientPipeline(this IServiceCollection services, HangFireOptions hangFireOptions) {
+    public static IServiceCollection AddAiChatClientPipeline(this IServiceCollection services) {
         services.AddChatClient(sp => {
+            var hangFireOptions = sp.GetRequiredService<HangFireOptions>();
             var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
             var httpClient = httpClientFactory.CreateClient("AiChatClient");
             var ollamaEndpoint = BuildOllamaEndpoint(hangFireOptions.Ollama?.Host);
@@ -31,8 +32,6 @@ public static class AiChatClientExtension {
             initLogger.LogInformation($"[DEBUG DI] OpenAI GenerateContentModelId: '{hangFireOptions.OpenAI?.GenerateContentModelId}'");
             initLogger.LogInformation($"[DEBUG DI] Ollama Host: '{ollamaEndpoint}'");
             initLogger.LogInformation($"[DEBUG DI] Ollama Model: '{hangFireOptions.Ollama?.Model}'");
-
-            var cache = sp.GetRequiredService<Microsoft.Extensions.Caching.Distributed.IDistributedCache>();
 
             var openAIClient = new OpenAIClient(
                 new ApiKeyCredential(hangFireOptions.OpenAI.ApiKey),

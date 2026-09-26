@@ -14,10 +14,11 @@ namespace FlowScheduler.Infrastructure.AI.Tools;
 /// Ogni tool viene registrato con la sua factory per risolvere dipendenze specifiche.
 /// </summary>
 public static class AiToolsExtension {
-    public static IServiceCollection AddAiTools(this IServiceCollection services, HangFireOptions hangFireOptions) {
+    public static IServiceCollection AddAiTools(this IServiceCollection services) {
         services.AddSingleton<DatabaseTool>(sp => {
             var dbFactoryResolver = sp.GetRequiredService<IDbConnectionFactoryResolver>();
-            return new DatabaseTool(dbFactoryResolver, hangFireOptions, sp.GetRequiredService<ILoggerFactory>().CreateLogger<DatabaseTool>());
+            var opts = sp.GetRequiredService<HangFireOptions>();
+            return new DatabaseTool(dbFactoryResolver, opts, sp.GetRequiredService<ILoggerFactory>().CreateLogger<DatabaseTool>());
         });
 
         services.AddSingleton<IFilePathResolver, StackTraceFilePathResolver>();

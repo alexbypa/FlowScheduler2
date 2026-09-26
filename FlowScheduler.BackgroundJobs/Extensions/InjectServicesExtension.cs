@@ -23,7 +23,7 @@ public static class InjectServicesExtension {
         // --- Configuration ---
         // Binds appsettings.json values to HangFireOptions for the IOptions pattern
         services.Configure<HangFireOptions>(configuration.GetSection("HangFireOptions"));
-        // Exposes HangFireOptions as a Singleton (so you can inject the raw class instead of IOptions<HangFireOptions>)
+        // Singleton bridge: resolves from IOptions<> so raw HangFireOptions injection works via single source of truth
         services.AddSingleton(sp => sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<HangFireOptions>>().Value);
         // Binds GitHub settings (token, url) to GitHubOptions
         services.Configure<GitHubOptions>(configuration.GetSection("GitHubOptions"));

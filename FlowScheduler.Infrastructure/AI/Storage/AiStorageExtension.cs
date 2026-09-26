@@ -16,12 +16,13 @@ namespace FlowScheduler.Infrastructure.AI.Storage;
 /// Tutto basato su Redis per persistenza in-memory ad alte prestazioni.
 /// </summary>
 public static class AiStorageExtension {
-    public static IServiceCollection AddAiStorage(this IServiceCollection services, HangFireOptions hangFireOptions) {
+    public static IServiceCollection AddAiStorage(this IServiceCollection services) {
         services.AddSingleton<IChatHistoryStore, RedisChatHistoryStore>();
         services.AddScoped<IContentStore, RedisContentStore>();
 
         // Embedding Generator (Google AI Studio via OpenAI-compatible SDK)
         services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(sp => {
+            var hangFireOptions = sp.GetRequiredService<HangFireOptions>();
             var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
             var httpClient = httpClientFactory.CreateClient("EmbeddingClient");
 
@@ -38,6 +39,7 @@ public static class AiStorageExtension {
         // Vector Store (Redis Search)
         services.AddSingleton<IVectorStoreService, RedisVectorStoreService>(sp => {
             var redis = sp.GetRequiredService<IConnectionMultiplexer>();
+            var hangFireOptions = sp.GetRequiredService<HangFireOptions>();
             return new RedisVectorStoreService(redis, hangFireOptions, sp.GetRequiredService<ILoggerFactory>().CreateLogger<RedisVectorStoreService>());
         });
 
