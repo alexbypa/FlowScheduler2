@@ -1,5 +1,6 @@
 using CSharpEssentials.HttpHelper;
 using CSharpEssentials.LoggerHelper;
+using CSharpEssentials.LoggerHelper.Dashboard;
 using CSharpEssentials.LoggerHelper.Sink.HangfireConsole;
 using FlowScheduler.Core.Configuration;
 using FlowScheduler.Core.Interfaces.AI;
@@ -41,6 +42,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("appsettings.LoggerHelper.json", optional: true, reloadOnChange: true);
 builder.Services.AddHangfireConsoleSink(); // registra IPerformContextAccessor come singleton
 builder.Services.AddLoggerHelper(builder.Configuration);
+builder.Services.AddLoggerHelperDashboard();
 
 // 2. Iniezione dei mock per HttpHelper (per testare le chiamate HTTP senza fare richieste reali)
 builder.Services.InjectMocks();
@@ -90,6 +92,10 @@ var app = builder.Build();
 
 // --- 2. Log della chiave API risolta per OpenAI (solo suffisso e lunghezza, non la chiave completa)
 AiSettingsConfiguration.LogResolvedKey(aiSettings, apiKeySource, app.Logger);
+
+// --- LoggerHelper dashboard
+app.UseLoggerHelper();
+app.MapLoggerHelperDashboard();
 
 app.UseRouting();
 // --- 3. CUSTOM DASHBOARD REDIRECTS (per SPA) ---

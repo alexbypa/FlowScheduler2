@@ -10,10 +10,12 @@
 				<ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
 		</PropertyGroup>
 		<ItemGroup>
-				<PackageReference Include="CSharpEssentials.HttpHelper" Version="5.0.8" />
-				<PackageReference Include="CSharpEssentials.LoggerHelper" Version="5.0.8" />
-				<PackageReference Include="CSharpEssentials.LoggerHelper.Sink.Console" Version="5.0.8" />
-				<PackageReference Include="CSharpEssentials.LoggerHelper.Sink.HangfireConsole" Version="5.0.8" />
+				<PackageReference Include="CSharpEssentials.HttpHelper" Version="5.2.6" />
+				<PackageReference Include="CSharpEssentials.LoggerHelper" Version="5.2.6" />
+				<PackageReference Include="CSharpEssentials.LoggerHelper.Dashboard" Version="5.2.2" />
+				<PackageReference Include="CSharpEssentials.LoggerHelper.Sink.Console" Version="5.2.6" />
+				<PackageReference Include="CSharpEssentials.LoggerHelper.Sink.HangfireConsole" Version="5.2.6" />
+				<PackageReference Include="CSharpEssentials.LoggerHelper.Sink.MSSqlServer" Version="5.2.6" />
 				<PackageReference Include="Hangfire" Version="1.8.25" />
 				<PackageReference Include="Hangfire.Console" Version="1.4.3" />
 				<PackageReference Include="Hangfire.Redis.StackExchange" Version="1.12.0" />
