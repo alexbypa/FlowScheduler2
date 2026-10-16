@@ -1,0 +1,20 @@
+version: 2
+updates:
+  - package-ecosystem: "nuget"
+    directory: "/"            # trova FlowScheduler.sln e i 6 .csproj
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    groups:
+      csharpessentials:
+        patterns: ["CSharpEssentials.*"]
+      microsoft-ai:
+        patterns: ["Microsoft.Agents.*", "Microsoft.Extensions.AI*", "ModelContextProtocol*"]
+      test:
+        patterns: ["xunit*", "Microsoft.NET.Test.Sdk", "coverlet.*", "NSubstitute", "Testcontainers.*", "Microsoft.AspNetCore.Mvc.Testing"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
