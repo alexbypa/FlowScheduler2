@@ -8,6 +8,7 @@
 
 		<ItemGroup>
 				<PackageReference Include="Microsoft.Agents.AI" Version="1.10.0" />
+				<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.13" />
 				<PackageReference Include="ModelContextProtocol" Version="2.2.0" />
 		</ItemGroup>
 
