@@ -13,8 +13,3 @@ updates:
         patterns: ["Microsoft.Agents.*", "Microsoft.Extensions.AI*", "ModelContextProtocol*"]
       test:
         patterns: ["xunit*", "Microsoft.NET.Test.Sdk", "coverlet.*", "NSubstitute", "Testcontainers.*", "Microsoft.AspNetCore.Mvc.Testing"]
-
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
